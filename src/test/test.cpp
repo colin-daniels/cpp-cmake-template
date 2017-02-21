@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
+#include <rkdp/rkdp.hpp>
 
-TEST(simple, one_plus_one)
+TEST(rkdp, hello)
 {
-    ASSERT_EQ(1, 1);
+    testing::internal::CaptureStdout();
+    rkdp::hello();
+    ASSERT_EQ("hello", testing::internal::GetCapturedStdout());
 }

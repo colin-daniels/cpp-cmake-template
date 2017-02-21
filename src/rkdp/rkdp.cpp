@@ -1,7 +1,7 @@
 #include "rkdp/rkdp.hpp"
 #include <iostream>
 
-void hello()
+void rkdp::hello()
 {
-    std::cout << "hello." << std::endl;
+    std::cout << "hello" << std::flush;
 }

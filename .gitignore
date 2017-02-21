@@ -42,6 +42,7 @@ CTestTestfile.cmake
 
 # Custom
 .idea/
+cmake-build-*/
 [Bb]uild/
 [Dd]ebug/
 [Dd]ebugPublic/

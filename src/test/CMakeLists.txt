@@ -11,4 +11,4 @@ set_target_properties(rkdp_test PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 target_link_libraries(rkdp_test
-        rkdp gtest_main)
+        rkdp_srclib gtest_main)
