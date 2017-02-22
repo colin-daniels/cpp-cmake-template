@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.2)
 project(rkdp CXX)
+set(${PROJECT_NAME}_VERSION 0.1)
 
-option(RKDP_ENABLE_TESTS   "Enable tests for rkdp"                ON)
-option(RKDP_ENABLE_INSTALL "Add install targets for rkdp headers" ON)
+option(EXAMPLE_ENABLE_TESTS   "Enable tests for project"                ON)
+option(EXAMPLE_ENABLE_INSTALL "Add install targets for project headers" ON)
 
 # add custom module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")

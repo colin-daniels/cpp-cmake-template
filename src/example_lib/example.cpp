@@ -1,7 +1,7 @@
-#include "rkdp/rkdp.hpp"
+#include "example_lib/example.hpp"
 #include <iostream>
 
-void rkdp::hello()
+void example::hello()
 {
     std::cout << "hello" << std::flush;
 }

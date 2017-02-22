@@ -1,11 +1,22 @@
 include(FilterOnOptions)
 
-set(SOURCE_FILES
-        include/rkdp/rkdp.hpp
-        rkdp/rkdp.cpp)
+# mostly install-related variables
+set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(include_install_dir "include")
+set(generated_dir "${PROJECT_BINARY_DIR}/generated")
 
-add_library(rkdp_common INTERFACE)
-target_include_directories(rkdp_common INTERFACE
+# configuration
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+set(SOURCE_FILES
+        include/example_lib/example.hpp
+        example_lib/example.cpp)
+
+add_library(${PROJECT_NAME}_common INTERFACE)
+target_include_directories(${PROJECT_NAME}_common INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
@@ -15,63 +26,92 @@ target_include_directories(rkdp_common INTERFACE
 ################################################################################
 
 # basic static/shared
-add_library(rkdp_static STATIC ${SOURCE_FILES})
-add_library(rkdp_shared SHARED ${SOURCE_FILES})
+add_library(${PROJECT_NAME}_static STATIC ${SOURCE_FILES})
+add_library(${PROJECT_NAME}_shared SHARED ${SOURCE_FILES})
 
 ################################################################################
 # header only target                                                          ##
 ################################################################################
 
-add_library(rkdp_headeronly INTERFACE)
-target_compile_definitions(rkdp_headeronly INTERFACE
-        RKDP_HEADER_ONLY)
+add_library(${PROJECT_NAME}_headeronly INTERFACE)
+target_compile_definitions(${PROJECT_NAME}_headeronly INTERFACE
+        EXAMPLE_HEADER_ONLY)
 
 ################################################################################
 # 'source' interface target                                                    #
 ################################################################################
 
-add_library(rkdp_srclib INTERFACE)
+add_library(${PROJECT_NAME}_srclib INTERFACE)
 foreach(srcfile ${SOURCE_FILES})
-    target_sources(rkdp_srclib INTERFACE
-            $<INSTALL_INTERFACE:include/rkdp/${srcfile}>
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${srcfile}>)
+    target_sources(${PROJECT_NAME}_srclib INTERFACE
+        $<INSTALL_INTERFACE:${include_install_dir}/${PROJECT_NAME}/${srcfile}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${srcfile}>)
 endforeach()
 
 # link common to propagate other settings
-target_link_libraries(rkdp_static PUBLIC rkdp_common)
-target_link_libraries(rkdp_shared PUBLIC rkdp_common)
-target_link_libraries(rkdp_headeronly INTERFACE rkdp_common)
-target_link_libraries(rkdp_srclib INTERFACE rkdp_common)
+target_link_libraries(${PROJECT_NAME}_static PUBLIC ${PROJECT_NAME}_common)
+target_link_libraries(${PROJECT_NAME}_shared PUBLIC ${PROJECT_NAME}_common)
+target_link_libraries(${PROJECT_NAME}_headeronly INTERFACE
+        ${PROJECT_NAME}_common)
+target_link_libraries(${PROJECT_NAME}_srclib INTERFACE ${PROJECT_NAME}_common)
 
-if(RKDP_ENABLE_INSTALL)
-    install(DIRECTORY   include/rkdp/
-            DESTINATION include/rkdp
+# installation code, adapted mostly from github.com/forexample/package-example
+if(EXAMPLE_ENABLE_INSTALL)
+    # Include module with fuction 'write_basic_package_version_file'
+    include(CMakePackageConfigHelpers)
+
+    # Configure '<PROJECT-NAME>ConfigVersion.cmake'
+    # Note: PROJECT_VERSION is used as a VERSION
+    write_basic_package_version_file("${version_config}"
+            VERSION ${${PROJECT_NAME}_VERSION}
+            COMPATIBILITY SameMajorVersion)
+
+
+    # Configure '<PROJECT-NAME>Config.cmake'
+    # Use variables:
+    #   * targets_export_name
+    #   * PROJECT_NAME
+    configure_package_config_file(
+            "${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in"
+            "${project_config}"
+            INSTALL_DESTINATION "${config_install_dir}")
+
+    install(TARGETS ${PROJECT_NAME}_static
+                ${PROJECT_NAME}_shared
+                ${PROJECT_NAME}_headeronly
+                ${PROJECT_NAME}_srclib
+                ${PROJECT_NAME}_common
+            EXPORT ${targets_export_name}
+            RUNTIME DESTINATION "bin"
+            LIBRARY DESTINATION "lib"
+            ARCHIVE DESTINATION "lib"
+            INCLUDES DESTINATION "${include_install_dir}")
+
+    # copy headers for the normal library targets
+    install(DIRECTORY   "include/${PROJECT_NAME}/"
+            DESTINATION "${include_install_dir}/${PROJECT_NAME}"
             FILES_MATCHING
                 PATTERN "*.h(pp)?")
 
-    install(DIRECTORY   rkdp/
-            DESTINATION include/rkdp
+    # copy sources for the srclib target
+    install(DIRECTORY   "example_lib/"
+            DESTINATION "${include_install_dir}/${PROJECT_NAME}"
             FILES_MATCHING
                 PATTERN "*.[ch](pp)?")
 
-    install(TARGETS rkdp_static
-                rkdp_shared
-                rkdp_headeronly
-                rkdp_srclib
-                rkdp_common
-            EXPORT rkdp_targets
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include)
+    # copy configs
+    install(FILES "${project_config}" "${version_config}"
+            DESTINATION "${config_install_dir}")
 
-    install(EXPORT rkdp_targets NAMESPACE Upstream::
-            DESTINATION lib/cmake/rkdp)
+    install(EXPORT "${targets_export_name}"
+            NAMESPACE "${namespace}"
+            DESTINATION "${config_install_dir}")
+
 endif()
 
-if(RKDP_ENABLE_TESTS)
-    target_compile_definitions(rkdp_common INTERFACE
-            RKDP_ENABLE_TESTS)
+if(EXAMPLE_ENABLE_TESTS)
+    target_compile_definitions(${PROJECT_NAME}_common INTERFACE
+            EXAMPLE_ENABLE_TESTS)
 
     add_subdirectory(test)
 endif()

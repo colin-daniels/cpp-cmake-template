@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include <rkdp/rkdp.hpp>
+#include "example_lib/example.hpp"
 
-TEST(rkdp, hello)
+TEST(example, hello)
 {
     testing::internal::CaptureStdout();
-    rkdp::hello();
+    example::hello();
     ASSERT_EQ("hello", testing::internal::GetCapturedStdout());
 }
