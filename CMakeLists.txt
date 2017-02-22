@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(rkdp CXX)
+project(example CXX)
 set(${PROJECT_NAME}_VERSION 0.1)
 
 option(EXAMPLE_ENABLE_TESTS   "Enable tests for project"                ON)
